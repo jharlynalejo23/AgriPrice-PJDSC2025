@@ -5,71 +5,6 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 
-def create_typhoon_chart(price_file_name, crop_type_name, top_n=5):
-    """Generate a volatility chart comparing prices and typhoon events for top commodities."""
-    import altair as alt
-    import pandas as pd
-    import os
-
-    # --- Load typhoon dataset ---
-    typhoon_path = "data_cleaned/Typhoon_Dataset-Sheet8.csv"
-    if os.path.exists(typhoon_path):
-        df_typhoons = pd.read_csv(typhoon_path)
-        df_typhoons["Date_Entered_PAR"] = pd.to_datetime(df_typhoons["Date Entered PAR"], errors="coerce")
-    else:
-        return None
-
-    # --- Load price file ---
-    if not os.path.exists(price_file_name):
-        return None
-
-    df_prices = pd.read_csv(price_file_name)
-
-    # --- Handle date column ---
-    if "Year" in df_prices.columns and "Month" in df_prices.columns:
-        df_prices["Date"] = pd.to_datetime(
-            df_prices["Year"].astype(str) + "-" + df_prices["Month"].astype(str) + "-01",
-            errors="coerce"
-        )
-
-    # --- Filter typhoons in date range ---
-    min_date, max_date = df_prices["Date"].min(), df_prices["Date"].max()
-    df_typhoons_filtered = df_typhoons[
-        (df_typhoons["Date_Entered_PAR"] >= min_date) & 
-        (df_typhoons["Date_Entered_PAR"] <= max_date)
-    ]
-
-    # --- Compute volatility (std per commodity) ---
-    volatility = df_prices.groupby("Commodity_Name")["Retail_Price"].std().reset_index()
-    top_commodities = volatility.sort_values("Retail_Price", ascending=False).head(top_n)["Commodity_Name"].tolist()
-
-    df_filtered = df_prices[df_prices["Commodity_Name"].isin(top_commodities)]
-    df_filtered = df_filtered.groupby(["Date", "Commodity_Name"]).agg(Retail_Price=("Retail_Price", "mean")).reset_index()
-
-    # --- Create chart ---
-    base = alt.Chart(df_filtered).encode(
-        x=alt.X("Date:T", title="Date"),
-        y=alt.Y("Retail_Price:Q", title="National Avg Price (₱/kg)"),
-        color="Commodity_Name:N"
-    )
-
-    lines = base.mark_line(point=True).encode(
-        tooltip=["Date:T", "Commodity_Name:N", "Retail_Price:Q"]
-    )
-
-    typhoon_lines = alt.Chart(df_typhoons_filtered).mark_rule(color="red", strokeDash=[4,3]).encode(
-        x="Date_Entered_PAR:T",
-        tooltip=["Typhoon Name:N", "Classification:N", "Peak Intensity:N"]
-    )
-
-    chart = (lines + typhoon_lines).properties(
-        width=800,
-        height=400,
-        title=f"🌾 {crop_type_name} — Top {top_n} Volatile Commodities vs Typhoon Events"
-    )
-
-    return chart
-
 st.set_page_config(
     page_title="AgriPrice Dashboard",
     layout="wide",
@@ -423,7 +358,12 @@ st.markdown('<div class="section-title">🌱 Summary Metrics</div>', unsafe_allo
 
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Commodities Analyzed", df["Commodity_Name"].nunique() if "Commodity_Name" in df.columns else 0)
-col2.metric("Total Price Spikes", "N/A (Column missing)")  # Placeholder; add logic if column exists
+if "Price_Spike" in df.columns:
+    total_spikes = int(df["Price_Spike"].sum())
+    col2.metric("Total Price Spikes", total_spikes)
+else:
+    col2.metric("Total Price Spikes", "No Data")
+
 col3.metric("Average Retail Price", f"₱{df['Retail_Price'].mean():,.2f}" if "Retail_Price" in df.columns else "N/A")
 col4.metric("Total Records", len(df))
 
