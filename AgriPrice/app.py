@@ -12,7 +12,7 @@ def create_typhoon_chart(price_file_name, crop_type_name, top_n=5):
     import os
 
     # --- Load typhoon dataset ---
-    typhoon_path = "Typhoon_Dataset-Sheet8.csv"
+    typhoon_path = "data_cleaned/Typhoon_Dataset-Sheet8.csv"
     if os.path.exists(typhoon_path):
         df_typhoons = pd.read_csv(typhoon_path)
         df_typhoons["Date_Entered_PAR"] = pd.to_datetime(df_typhoons["Date Entered PAR"], errors="coerce")
@@ -85,13 +85,13 @@ st.divider()
 # 1️⃣ DEFINE FILE PATHS
 # =====================================================
 PRICE_FILES = [
-    "Condiments-Food-Prices.csv",
-    "Fruits-Food-Prices.csv",
-    "Fruit-Vegetables-Food-Prices.csv",
-    "Leafy-Vegetables-Food-Prices.csv",
-    "Rootcrops-Food-Prices.csv"
+    "data_cleaned/Condiments-Food-Prices.csv",
+    "data_cleaned/Fruits-Food-Prices.csv",
+    "data_cleaned/Fruit-Vegetables-Food-Prices.csv",
+    "data_cleaned/Leafy-Vegetables-Food-Prices.csv",
+    "data_cleaned/Rootcrops-Food-Prices.csv"
 ]
-TYPHOON_FILE = "Typhoon_Dataset-Sheet8.csv"
+TYPHOON_FILE = "data_cleaned/Typhoon_Dataset-Sheet8.csv"
 
 # Load typhoon data
 if os.path.exists(TYPHOON_FILE):
@@ -694,5 +694,5 @@ st.markdown("""
 ---
 🌾 **AgriPrice Dashboard 2025**  
 Analyzing how natural events influence agricultural economics in the Philippines.  
-Developed by **JML | PJDSC 2025 | Lyceum of the Philippines University**  
+Developed by **JML | PJDSC 2025 |**  
 """)
